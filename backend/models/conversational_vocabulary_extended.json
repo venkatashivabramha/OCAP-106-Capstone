@@ -1,0 +1,667 @@
+{
+  "greetings": {
+    "hello": {
+      "sign": "H",
+      "category": "greeting",
+      "tier": 1
+    },
+    "hi": {
+      "sign": "H",
+      "category": "greeting",
+      "tier": 1
+    },
+    "goodbye": {
+      "sign": "G",
+      "category": "greeting",
+      "tier": 1
+    },
+    "bye": {
+      "sign": "B",
+      "category": "greeting",
+      "tier": 1
+    },
+    "good_morning": {
+      "sign": "G+M",
+      "category": "greeting",
+      "tier": 1
+    },
+    "good_night": {
+      "sign": "G+N",
+      "category": "greeting",
+      "tier": 1
+    }
+  },
+  "politeness": {
+    "thank_you": {
+      "sign": "T+Y",
+      "category": "politeness",
+      "tier": 1
+    },
+    "thanks": {
+      "sign": "T",
+      "category": "politeness",
+      "tier": 1
+    },
+    "please": {
+      "sign": "P",
+      "category": "politeness",
+      "tier": 1
+    },
+    "sorry": {
+      "sign": "S",
+      "category": "politeness",
+      "tier": 1
+    },
+    "excuse_me": {
+      "sign": "E+M",
+      "category": "politeness",
+      "tier": 1
+    },
+    "welcome": {
+      "sign": "W",
+      "category": "politeness",
+      "tier": 1
+    }
+  },
+  "questions": {
+    "what": {
+      "sign": "W",
+      "category": "question",
+      "tier": 1
+    },
+    "where": {
+      "sign": "W",
+      "category": "question",
+      "tier": 1
+    },
+    "when": {
+      "sign": "W",
+      "category": "question",
+      "tier": 1
+    },
+    "who": {
+      "sign": "W",
+      "category": "question",
+      "tier": 1
+    },
+    "why": {
+      "sign": "W",
+      "category": "question",
+      "tier": 1
+    },
+    "how": {
+      "sign": "H",
+      "category": "question",
+      "tier": 1
+    }
+  },
+  "responses": {
+    "yes": {
+      "sign": "Y",
+      "category": "response",
+      "tier": 1
+    },
+    "no": {
+      "sign": "N",
+      "category": "response",
+      "tier": 1
+    },
+    "ok": {
+      "sign": "O+K",
+      "category": "response",
+      "tier": 1
+    },
+    "maybe": {
+      "sign": "M",
+      "category": "response",
+      "tier": 1
+    },
+    "i_understand": {
+      "sign": "I+U",
+      "category": "response",
+      "tier": 1
+    },
+    "i_dont_know": {
+      "sign": "I+D+K",
+      "category": "response",
+      "tier": 1
+    }
+  },
+  "basic_verbs": {
+    "want": {
+      "sign": "W",
+      "category": "verb",
+      "tier": 1
+    },
+    "need": {
+      "sign": "N",
+      "category": "verb",
+      "tier": 1
+    },
+    "help": {
+      "sign": "H",
+      "category": "verb",
+      "tier": 1
+    },
+    "go": {
+      "sign": "G",
+      "category": "verb",
+      "tier": 1
+    },
+    "come": {
+      "sign": "C",
+      "category": "verb",
+      "tier": 1
+    },
+    "eat": {
+      "sign": "E",
+      "category": "verb",
+      "tier": 1
+    },
+    "drink": {
+      "sign": "D",
+      "category": "verb",
+      "tier": 1
+    },
+    "sleep": {
+      "sign": "S",
+      "category": "verb",
+      "tier": 1
+    }
+  },
+  "pronouns": {
+    "i": {
+      "sign": "I",
+      "category": "pronoun",
+      "tier": 2
+    },
+    "me": {
+      "sign": "M",
+      "category": "pronoun",
+      "tier": 2
+    },
+    "you": {
+      "sign": "Y+U",
+      "category": "pronoun",
+      "tier": 2
+    },
+    "we": {
+      "sign": "W",
+      "category": "pronoun",
+      "tier": 2
+    },
+    "they": {
+      "sign": "T",
+      "category": "pronoun",
+      "tier": 2
+    },
+    "my": {
+      "sign": "M+Y",
+      "category": "pronoun",
+      "tier": 2
+    },
+    "your": {
+      "sign": "Y+R",
+      "category": "pronoun",
+      "tier": 2
+    }
+  },
+  "family": {
+    "mother": {
+      "sign": "M",
+      "category": "family",
+      "tier": 2
+    },
+    "mom": {
+      "sign": "M",
+      "category": "family",
+      "tier": 2
+    },
+    "father": {
+      "sign": "F",
+      "category": "family",
+      "tier": 2
+    },
+    "dad": {
+      "sign": "D",
+      "category": "family",
+      "tier": 2
+    },
+    "brother": {
+      "sign": "B",
+      "category": "family",
+      "tier": 2
+    },
+    "sister": {
+      "sign": "S",
+      "category": "family",
+      "tier": 2
+    },
+    "family": {
+      "sign": "F",
+      "category": "family",
+      "tier": 2
+    },
+    "child": {
+      "sign": "C",
+      "category": "family",
+      "tier": 2
+    },
+    "baby": {
+      "sign": "B",
+      "category": "family",
+      "tier": 2
+    }
+  },
+  "emotions": {
+    "happy": {
+      "sign": "H",
+      "category": "emotion",
+      "tier": 2
+    },
+    "sad": {
+      "sign": "S",
+      "category": "emotion",
+      "tier": 2
+    },
+    "angry": {
+      "sign": "A",
+      "category": "emotion",
+      "tier": 2
+    },
+    "tired": {
+      "sign": "T",
+      "category": "emotion",
+      "tier": 2
+    },
+    "sick": {
+      "sign": "S",
+      "category": "emotion",
+      "tier": 2
+    },
+    "hurt": {
+      "sign": "H",
+      "category": "emotion",
+      "tier": 2
+    },
+    "hungry": {
+      "sign": "H",
+      "category": "emotion",
+      "tier": 2
+    },
+    "thirsty": {
+      "sign": "T",
+      "category": "emotion",
+      "tier": 2
+    },
+    "good": {
+      "sign": "G",
+      "category": "emotion",
+      "tier": 2
+    },
+    "bad": {
+      "sign": "B",
+      "category": "emotion",
+      "tier": 2
+    }
+  },
+  "adjectives": {
+    "big": {
+      "sign": "B",
+      "category": "adjective",
+      "tier": 2
+    },
+    "small": {
+      "sign": "S",
+      "category": "adjective",
+      "tier": 2
+    },
+    "hot": {
+      "sign": "H",
+      "category": "adjective",
+      "tier": 2
+    },
+    "cold": {
+      "sign": "C",
+      "category": "adjective",
+      "tier": 2
+    },
+    "fast": {
+      "sign": "F",
+      "category": "adjective",
+      "tier": 2
+    },
+    "slow": {
+      "sign": "S",
+      "category": "adjective",
+      "tier": 2
+    }
+  },
+  "places": {
+    "home": {
+      "sign": "H",
+      "category": "place",
+      "tier": 3
+    },
+    "school": {
+      "sign": "S",
+      "category": "place",
+      "tier": 3
+    },
+    "hospital": {
+      "sign": "H",
+      "category": "place",
+      "tier": 3
+    },
+    "shop": {
+      "sign": "S",
+      "category": "place",
+      "tier": 3
+    },
+    "office": {
+      "sign": "O",
+      "category": "place",
+      "tier": 3
+    },
+    "bathroom": {
+      "sign": "B",
+      "category": "place",
+      "tier": 3
+    }
+  },
+  "time": {
+    "today": {
+      "sign": "T+D",
+      "category": "time",
+      "tier": 3
+    },
+    "tomorrow": {
+      "sign": "T+M",
+      "category": "time",
+      "tier": 3
+    },
+    "yesterday": {
+      "sign": "Y",
+      "category": "time",
+      "tier": 3
+    },
+    "now": {
+      "sign": "N",
+      "category": "time",
+      "tier": 3
+    },
+    "later": {
+      "sign": "L",
+      "category": "time",
+      "tier": 3
+    },
+    "morning": {
+      "sign": "M",
+      "category": "time",
+      "tier": 3
+    },
+    "night": {
+      "sign": "N",
+      "category": "time",
+      "tier": 3
+    }
+  },
+  "common_nouns": {
+    "food": {
+      "sign": "F",
+      "category": "noun",
+      "tier": 3
+    },
+    "water": {
+      "sign": "W",
+      "category": "noun",
+      "tier": 3
+    },
+    "money": {
+      "sign": "M",
+      "category": "noun",
+      "tier": 3
+    },
+    "phone": {
+      "sign": "P",
+      "category": "noun",
+      "tier": 3
+    },
+    "book": {
+      "sign": "B",
+      "category": "noun",
+      "tier": 3
+    },
+    "car": {
+      "sign": "C",
+      "category": "noun",
+      "tier": 3
+    },
+    "house": {
+      "sign": "H",
+      "category": "noun",
+      "tier": 3
+    }
+  },
+  "actions": {
+    "sit": {
+      "sign": "S",
+      "category": "action",
+      "tier": 3
+    },
+    "stand": {
+      "sign": "S",
+      "category": "action",
+      "tier": 3
+    },
+    "walk": {
+      "sign": "W",
+      "category": "action",
+      "tier": 3
+    },
+    "run": {
+      "sign": "R",
+      "category": "action",
+      "tier": 3
+    },
+    "stop": {
+      "sign": "S",
+      "category": "action",
+      "tier": 3
+    },
+    "wait": {
+      "sign": "W",
+      "category": "action",
+      "tier": 3
+    },
+    "talk": {
+      "sign": "T",
+      "category": "action",
+      "tier": 3
+    },
+    "listen": {
+      "sign": "L",
+      "category": "action",
+      "tier": 3
+    }
+  },
+  "numbers": {
+    "1": {
+      "sign": "1",
+      "category": "number",
+      "tier": 1
+    },
+    "2": {
+      "sign": "2",
+      "category": "number",
+      "tier": 1
+    },
+    "3": {
+      "sign": "3",
+      "category": "number",
+      "tier": 1
+    },
+    "4": {
+      "sign": "4",
+      "category": "number",
+      "tier": 1
+    },
+    "5": {
+      "sign": "5",
+      "category": "number",
+      "tier": 1
+    },
+    "6": {
+      "sign": "6",
+      "category": "number",
+      "tier": 1
+    },
+    "7": {
+      "sign": "7",
+      "category": "number",
+      "tier": 1
+    },
+    "8": {
+      "sign": "8",
+      "category": "number",
+      "tier": 1
+    },
+    "9": {
+      "sign": "9",
+      "category": "number",
+      "tier": 1
+    }
+  },
+  "letters": {
+    "A": {
+      "sign": "A",
+      "category": "letter",
+      "tier": 1
+    },
+    "B": {
+      "sign": "B",
+      "category": "letter",
+      "tier": 1
+    },
+    "C": {
+      "sign": "C",
+      "category": "letter",
+      "tier": 1
+    },
+    "D": {
+      "sign": "D",
+      "category": "letter",
+      "tier": 1
+    },
+    "E": {
+      "sign": "E",
+      "category": "letter",
+      "tier": 1
+    },
+    "F": {
+      "sign": "F",
+      "category": "letter",
+      "tier": 1
+    },
+    "G": {
+      "sign": "G",
+      "category": "letter",
+      "tier": 1
+    },
+    "H": {
+      "sign": "H",
+      "category": "letter",
+      "tier": 1
+    },
+    "I": {
+      "sign": "I",
+      "category": "letter",
+      "tier": 1
+    },
+    "J": {
+      "sign": "J",
+      "category": "letter",
+      "tier": 1
+    },
+    "K": {
+      "sign": "K",
+      "category": "letter",
+      "tier": 1
+    },
+    "L": {
+      "sign": "L",
+      "category": "letter",
+      "tier": 1
+    },
+    "M": {
+      "sign": "M",
+      "category": "letter",
+      "tier": 1
+    },
+    "N": {
+      "sign": "N",
+      "category": "letter",
+      "tier": 1
+    },
+    "O": {
+      "sign": "O",
+      "category": "letter",
+      "tier": 1
+    },
+    "P": {
+      "sign": "P",
+      "category": "letter",
+      "tier": 1
+    },
+    "Q": {
+      "sign": "Q",
+      "category": "letter",
+      "tier": 1
+    },
+    "R": {
+      "sign": "R",
+      "category": "letter",
+      "tier": 1
+    },
+    "S": {
+      "sign": "S",
+      "category": "letter",
+      "tier": 1
+    },
+    "T": {
+      "sign": "T",
+      "category": "letter",
+      "tier": 1
+    },
+    "U": {
+      "sign": "U",
+      "category": "letter",
+      "tier": 1
+    },
+    "V": {
+      "sign": "V",
+      "category": "letter",
+      "tier": 1
+    },
+    "W": {
+      "sign": "W",
+      "category": "letter",
+      "tier": 1
+    },
+    "X": {
+      "sign": "X",
+      "category": "letter",
+      "tier": 1
+    },
+    "Y": {
+      "sign": "Y",
+      "category": "letter",
+      "tier": 1
+    },
+    "Z": {
+      "sign": "Z",
+      "category": "letter",
+      "tier": 1
+    }
+  }
+}
