@@ -1,0 +1,149 @@
+{
+  "signs": [
+    {
+      "sign": "HELLO",
+      "meaning": "greeting",
+      "usage": "Start conversation"
+    },
+    {
+      "sign": "THANK_YOU",
+      "meaning": "gratitude",
+      "usage": "Express thanks"
+    },
+    {
+      "sign": "HELP",
+      "meaning": "assistance",
+      "usage": "Request help"
+    },
+    {
+      "sign": "YES",
+      "meaning": "affirmation",
+      "usage": "Agree / confirm"
+    },
+    {
+      "sign": "NO",
+      "meaning": "negation",
+      "usage": "Disagree / refuse"
+    },
+    {
+      "sign": "SORRY",
+      "meaning": "apology",
+      "usage": "Apologise"
+    },
+    {
+      "sign": "PLEASE",
+      "meaning": "politeness",
+      "usage": "Polite request"
+    },
+    {
+      "sign": "GOOD",
+      "meaning": "positive",
+      "usage": "Express satisfaction"
+    },
+    {
+      "sign": "BAD",
+      "meaning": "negative",
+      "usage": "Express dissatisfaction"
+    },
+    {
+      "sign": "HAPPY",
+      "meaning": "emotion",
+      "usage": "Express happiness"
+    },
+    {
+      "sign": "SAD",
+      "meaning": "emotion",
+      "usage": "Express sadness"
+    },
+    {
+      "sign": "LOVE",
+      "meaning": "emotion",
+      "usage": "Express affection"
+    },
+    {
+      "sign": "EAT",
+      "meaning": "action",
+      "usage": "Eating food"
+    },
+    {
+      "sign": "DRINK",
+      "meaning": "action",
+      "usage": "Drinking"
+    },
+    {
+      "sign": "GO",
+      "meaning": "movement",
+      "usage": "Going somewhere"
+    },
+    {
+      "sign": "COME",
+      "meaning": "movement",
+      "usage": "Coming here"
+    },
+    {
+      "sign": "WAIT",
+      "meaning": "action",
+      "usage": "Please wait"
+    },
+    {
+      "sign": "STOP",
+      "meaning": "action",
+      "usage": "Stop something"
+    },
+    {
+      "sign": "NAME",
+      "meaning": "identity",
+      "usage": "Asking/giving name"
+    },
+    {
+      "sign": "FINISH",
+      "meaning": "completion",
+      "usage": "Completed something"
+    }
+  ],
+  "phrases": [
+    {
+      "phrase": "How are you?",
+      "signs": [
+        "HOW",
+        "YOU"
+      ],
+      "ctx": "greeting"
+    },
+    {
+      "phrase": "Thank you very much",
+      "signs": [
+        "THANK_YOU",
+        "VERY"
+      ],
+      "ctx": "gratitude"
+    },
+    {
+      "phrase": "I need help",
+      "signs": [
+        "I",
+        "NEED",
+        "HELP"
+      ],
+      "ctx": "assistance"
+    },
+    {
+      "phrase": "What is your name?",
+      "signs": [
+        "WHAT",
+        "YOUR",
+        "NAME"
+      ],
+      "ctx": "intro"
+    },
+    {
+      "phrase": "Nice to meet you",
+      "signs": [
+        "NICE",
+        "MEET",
+        "YOU"
+      ],
+      "ctx": "greeting"
+    }
+  ]
+}

@@ -1,0 +1,263 @@
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getMessages, sendMessage, recognizeSign } from '../services/api';
+import { ArrowLeft, Camera, Send, Mic } from 'lucide-react';
+import '../styles/ChatWindow.css';
+
+interface Message {
+  id: string;
+  sender_id: string;
+  message_type: string;
+  text_content: string;
+  sign_label?: string;
+  confidence_score?: number;
+  created_at: string;
+}
+
+function ChatWindow() {
+  const { conversationId } = useParams<{ conversationId: string }>();
+  const navigate = useNavigate();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messageText, setMessageText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [recognizing, setRecognizing] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
+
+  useEffect(() => {
+    loadMessages();
+    const interval = setInterval(loadMessages, 5000); // Poll for new messages
+    return () => clearInterval(interval);
+  }, [conversationId]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const loadMessages = async () => {
+    if (!conversationId) return;
+    try {
+      const response = await getMessages(conversationId);
+      setMessages(response.messages || []);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSendText = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageText.trim() || !conversationId) return;
+
+    setSending(true);
+    try {
+      await sendMessage(conversationId, 'text', messageText);
+      setMessageText('');
+      loadMessages();
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      alert('Failed to send message');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 },
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+      }
+      setShowCamera(true);
+    } catch (error) {
+      console.error('Failed to access camera:', error);
+      alert('Camera access denied. Please allow camera permissions.');
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  const captureAndRecognize = async () => {
+    if (!videoRef.current || !conversationId) return;
+
+    setRecognizing(true);
+    try {
+      // Capture frame from video
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0);
+        const frameBase64 = canvas.toDataURL('image/jpeg').split(',')[1];
+
+        // Send to backend for recognition
+        const result = await recognizeSign(frameBase64);
+
+        if (result.success) {
+          // Send recognized sign as message
+          await sendMessage(
+            conversationId,
+            'sign',
+            `🤟 ${result.sign_label}`,
+            result.sign_label,
+            result.confidence_score
+          );
+          
+          stopCamera();
+          loadMessages();
+          alert(`Sign recognized: ${result.sign_label} (${(result.confidence_score * 100).toFixed(1)}%)`);
+        } else {
+          alert('Could not recognize sign. Please try again.');
+        }
+      }
+    } catch (error: any) {
+      console.error('Recognition failed:', error);
+      alert(error.response?.data?.error || 'Failed to recognize sign');
+    } finally {
+      setRecognizing(false);
+    }
+  };
+
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  if (loading) {
+    return <div className="loading">Loading messages...</div>;
+  }
+
+  return (
+    <div className="chat-window-container">
+      {/* Header */}
+      <div className="chat-header">
+        <button className="back-btn" onClick={() => navigate('/chats')}>
+          <ArrowLeft size={24} />
+        </button>
+        <div className="chat-header-info">
+          <h2>Chat</h2>
+          <span className="online-status">Online</span>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="messages-container">
+        {messages.length === 0 ? (
+          <div className="empty-messages">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        ) : (
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`message ${msg.sender_id === userId ? 'sent' : 'received'}`}
+            >
+              <div className="message-bubble">
+                {msg.message_type === 'sign' && msg.sign_label && (
+                  <div className="sign-badge">
+                    🤟 {msg.sign_label}
+                    {msg.confidence_score && (
+                      <span className="confidence">
+                        {(msg.confidence_score * 100).toFixed(0)}%
+                      </span>
+                    )}
+                  </div>
+                )}
+                <p>{msg.text_content}</p>
+                <span className="message-time">{formatTime(msg.created_at)}</span>
+              </div>
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Camera Modal */}
+      {showCamera && (
+        <div className="camera-modal">
+          <div className="camera-container">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="camera-video"
+            />
+            <div className="camera-controls">
+              <button
+                onClick={captureAndRecognize}
+                disabled={recognizing}
+                className="btn-capture"
+              >
+                {recognizing ? 'Recognizing...' : 'Capture & Recognize'}
+              </button>
+              <button onClick={stopCamera} className="btn-cancel">
+                Cancel
+              </button>
+            </div>
+            <div className="camera-hint">
+              Position your hand clearly in the camera frame
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Input Area */}
+      <div className="chat-input-container">
+        <button
+          className="input-icon-btn"
+          onClick={startCamera}
+          title="Send Sign Language"
+        >
+          <Camera size={24} />
+        </button>
+        
+        <form onSubmit={handleSendText} className="message-form">
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            disabled={sending}
+          />
+          <button
+            type="submit"
+            className="send-btn"
+            disabled={sending || !messageText.trim()}
+          >
+            <Send size={20} />
+          </button>
+        </form>
+
+        <button
+          className="input-icon-btn"
+          title="Voice Message (Coming Soon)"
+        >
+          <Mic size={24} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default ChatWindow;

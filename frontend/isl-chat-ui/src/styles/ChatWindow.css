@@ -1,0 +1,73 @@
+﻿/* ═══ ChatWindow (cw-*) ═══ */
+:root {
+  --cw-primary: #075e54;
+  --cw-accent:  #25d366;
+  --cw-bg:      #ece5dd;
+  --cw-mine:    #d9fdd3;
+  --cw-theirs:  #ffffff;
+  --cw-bot:     #e3f2fd;
+}
+
+.cw-container { display:flex; flex-direction:column; height:100vh; height:100dvh; max-width:900px; margin:0 auto; background:var(--cw-bg); }
+
+.cw-loading, .cw-empty { flex:1; display:flex; align-items:center; justify-content:center; color:#777; }
+
+.cw-header { display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--cw-primary); color:#fff; position:sticky; top:0; z-index:10; }
+.cw-back { background:none; border:none; color:#fff; cursor:pointer; padding:6px; border-radius:50%; display:flex; }
+.cw-back:hover { background:rgba(255,255,255,.15); }
+.cw-header-info { display:flex; flex-direction:column; }
+.cw-title { font-weight:600; font-size:1.05rem; }
+.cw-status { font-size:.72rem; display:flex; align-items:center; gap:4px; }
+.cw-on  { color:#7fe3a1; }
+.cw-off { color:#bbb; }
+
+.cw-messages { flex:1; overflow-y:auto; padding:14px 12px 6px; }
+
+/* message rows */
+.cw-row { display:flex; margin-bottom:10px; animation:cwSlide .25s ease-out; }
+@keyframes cwSlide { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+.cw-row-mine   { justify-content:flex-end; }
+.cw-row-theirs{ justify-content:flex-start; }
+.cw-row-bot   { justify-content:flex-start; align-items:flex-end; gap:6px; }
+
+.cw-bot-tag { display:flex; align-items:center; gap:2px; font-size:.65rem; color:#1565c0; background:#e3f2fd; padding:2px 6px; border-radius:8px 2px 8px 8px; margin-bottom:14px; }
+
+.cw-bubble { max-width:72%; padding:8px 12px 6px; border-radius:12px; box-shadow:0 1px 1px rgba(0,0,0,.12); display:flex; flex-direction:column; }
+.cw-mine   { background:var(--cw-mine);   border-bottom-right-radius:2px; }
+.cw-theirs { background:var(--cw-theirs); border-bottom-left-radius:2px; }
+.cw-bot-bubble { background:var(--cw-bot); border-bottom-left-radius:2px; }
+
+.cw-text { font-size:.95rem; line-height:1.4; word-break:break-word; }
+
+.cw-meta { display:flex; align-items:center; gap:8px; justify-content:flex-end; margin-top:3px; }
+.cw-time { font-size:.65rem; color:#8696a0; }
+
+/* ── Voice button ── */
+.cw-voice-btn { background:none; border:none; cursor:pointer; color:#54656f; padding:2px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.cw-voice-btn:hover { color:var(--cw-primary); transform:scale(1.15); }
+.cw-voice-active { color:#e53935 !important; animation:cwPulse 1s infinite; }
+@keyframes cwPulse { 50%{ opacity:.5; } }
+.cw-voice-spin { width:10px; height:10px; border:2px solid #999; border-top-color:transparent; border-radius:50%; animation:cwSpin .7s linear infinite; }
+@keyframes cwSpin { to{ transform:rotate(360deg); } }
+
+/* typing */
+.cw-typing { display:flex; align-items:center; gap:6px; background:#fff; width:fit-content; padding:8px 12px; border-radius:12px; font-size:.8rem; color:#666; }
+.cw-dots { display:inline-flex; gap:3px; }
+.cw-dots span { width:5px; height:5px; background:#999; border-radius:50%; animation:cwBlink 1.4s infinite; }
+.cw-dots span:nth-child(2){ animation-delay:.2s; }
+.cw-dots span:nth-child(3){ animation-delay:.4s; }
+@keyframes cwBlink { 0%,60%,100%{opacity:.3;} 30%{opacity:1;} }
+
+/* input bar */
+.cw-input { display:flex; gap:8px; padding:10px 12px; background:#f0f2f5; border-top:1px solid #d1d7db; }
+.cw-input input { flex:1; padding:10px 16px; border:none; border-radius:22px; font-size:.95rem; outline:none; background:#fff; }
+.cw-cam-btn, .cw-send-btn { border:none; cursor:pointer; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; transition:transform .15s; }
+.cw-cam-btn { background:var(--cw-primary); }
+.cw-send-btn{ background:var(--cw-accent); }
+.cw-cam-btn:hover, .cw-send-btn:hover { transform:scale(1.08); }
+.cw-send-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+@media (max-width:600px) {
+  .cw-bubble { max-width:85%; }
+  .cw-title { font-size:.95rem; }
+}
