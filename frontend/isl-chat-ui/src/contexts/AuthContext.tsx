@@ -18,9 +18,16 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         const u = JSON.parse(raw);
         setUser(u);
         try {
+          // Validate token by fetching profile
           const p = await getProfile();
           setUser({ ...u, display_name: p.display_name, bio: p.bio, avatar_url: p.avatar_url });
-        } catch {}
+        } catch (err: any) {
+          // 401 means stale token — clear and force re-login
+          if (err?.response?.status === 401) {
+            localStorage.clear();
+            setUser(null);
+          }
+        }
       }
       setLoading(false);
     })();
@@ -31,7 +38,9 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const logout = async () => {
     try { const rt = localStorage.getItem('refresh_token')||''; await apiLogout(rt); } catch {}
     setUser(null);
-    localStorage.removeItem('user'); localStorage.removeItem('access_token'); localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
   };
 
   const updateUserProfile = async (name: string, bio?: string) => {

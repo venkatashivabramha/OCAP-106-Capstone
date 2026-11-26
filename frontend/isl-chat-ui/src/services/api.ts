@@ -1,6 +1,6 @@
 ﻿import axios from 'axios';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = '/api';  // proxied by Vite to http://127.0.0.1:8000
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -17,6 +17,24 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+// Auto-logout on 401 (stale/invalid token)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const isAuthEndpoint = error.config?.url?.includes('/auth/send-otp') || 
+                             error.config?.url?.includes('/auth/verify-otp');
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 
 // Authentication APIs - Updated for Firebase backend
 export const sendOTP = async (phoneNumber: string) => {

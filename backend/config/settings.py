@@ -16,7 +16,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').spl
 
 # Application definition
 INSTALLED_APPS = [
-    'daphne',  # Must be first for WebSocket support
+    # 'daphne',  # Only needed in production with 'daphne config.asgi:application'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'status',
     'typing_indicators',
     'llm_service',
+    'rest_framework_simplejwt.token_blacklist',
     'chat',              # WebSocket chat consumer
 ]
 
