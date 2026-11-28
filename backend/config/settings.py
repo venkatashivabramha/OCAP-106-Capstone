@@ -229,8 +229,8 @@ FIREBASE_SERVICE_ACCOUNT_KEY = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY', '')
 # Serve frontend dist from Django static files
 FRONTEND_BUILD = BASE_DIR.parent / 'frontend' / 'isl-chat-ui' / 'dist'
 
-# Daphne only in production (PORT env var is set by Railway/Heroku)
-if os.getenv('PORT') and 'daphne' not in INSTALLED_APPS:
+# Daphne needed for WebSocket support in both dev and production
+if 'daphne' not in INSTALLED_APPS:
     INSTALLED_APPS.insert(0, 'daphne')
 
 # Production security (auto-detected by PORT env var = production)
