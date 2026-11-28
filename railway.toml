@@ -1,0 +1,8 @@
+[build]
+builder = 'nixpacks'
+
+[deploy]
+startCommand = 'cd backend && python manage.py migrate --noinput && python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p \ config.asgi:application'
+healthcheckPath = '/api/llm/provider-status/'
+healthcheckTimeout = 30
+restartPolicyType = 'on_failure'

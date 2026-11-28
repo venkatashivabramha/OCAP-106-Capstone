@@ -220,3 +220,27 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS':  True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
+# Firebase
+FIREBASE_SERVICE_ACCOUNT_KEY = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY', '')
+
+
+# ══ Railway / Production deployment ══════════════════════════════
+# Serve frontend dist from Django static files
+FRONTEND_BUILD = BASE_DIR.parent / 'frontend' / 'isl-chat-ui' / 'dist'
+
+# Add daphne back for production ASGI
+import sys
+if 'daphne' not in INSTALLED_APPS:
+    INSTALLED_APPS.insert(0, 'daphne')
+
+# Production security (auto-detected by PORT env var = production)
+if os.getenv('PORT'):
+    DEBUG = False
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Allow Railway domains
+    ALLOWED_HOSTS += ['*.railway.app', '.railway.app', '.up.railway.app']
+    CORS_ALLOWED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h.startswith('.') is False and h != '*']
+    CORS_ALLOW_ALL_ORIGINS = False

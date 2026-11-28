@@ -1,4 +1,4 @@
-"""
+﻿"""
 URL configuration for Signa Link ISL Chat Application
 """
 from django.contrib import admin
@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/status/', include('status.urls')),
     path('api/typing/', include('typing_indicators.urls')),
     path('api/llm/', include('llm_service.urls')),
+    path('api/chat/', include('chat.urls')),
 ]
 
 if settings.DEBUG:

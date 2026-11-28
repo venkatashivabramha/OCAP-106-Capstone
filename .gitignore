@@ -61,3 +61,4 @@ htmlcov/
 .coverage
 coverage.xml
 .pytest_cache/
+backend/firebase-service-account.json
