@@ -135,7 +135,20 @@ export default function App() {
     } catch {}
   };
 
-  const handleSend = (e: React.FormEvent) => { e.preventDefault(); sendMsg(input); };
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    const t = input.trim();
+    if (!t) return;
+    sendMsg(t);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const t = input.trim();
+      if (t) sendMsg(t);
+    }
+  };
   const handleType = () => {
     const ws = wsRef.current;
     if (ws?.readyState !== WebSocket.OPEN) return;
@@ -308,10 +321,13 @@ export default function App() {
           <input
             value={input}
             onChange={e=>{setInput(e.target.value); handleType();}}
-            placeholder="Type a message or click 🤟 to sign…"
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message or press Enter to send…"
             autoComplete="off"
           />
-          <button type="submit" className="isend">Send</button>
+          <button type="submit" className="isend" onClick={()=>{ if(input.trim()) sendMsg(input); }}>
+            Send ➤
+          </button>
         </form>
       </div>
     </div>
