@@ -2,7 +2,6 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd backend && python3 manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT config.asgi:application"
+startCommand = "cd backend && python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT config.asgi:application"
 healthcheckPath = "/api/chat/users/?room=main"
 healthcheckTimeout = 60
-restartPolicyType = "on_failure"
