@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def process_sign_sequence(request):
     """
     POST /api/recognition/sequence/
@@ -27,13 +27,13 @@ def process_sign_sequence(request):
     if not sign_label:
         return Response({'error': 'sign_label required'}, status=400)
 
-    uid    = str(request.user.id)
+    uid = request.data.get('username', request.META.get('HTTP_X_USERNAME', 'anonymous'))
     result = get_sequence_manager().add_sign(uid, sign_label, confidence)
     return Response({'success': True, **result})
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def flush_sign_sequence(request):
     """
     POST /api/recognition/flush/
@@ -45,7 +45,7 @@ def flush_sign_sequence(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def isl_chat(request):
     """
     POST /api/llm/isl-chat/
@@ -57,7 +57,7 @@ def isl_chat(request):
     if not text:
         return Response({'error': 'text required'}, status=400)
 
-    uid = str(request.user.id)
+    uid = request.data.get("username", request.GET.get("username", "anonymous"))
     rag_ctx = get_rag_manager().context_string(text)
     result  = get_conversation_manager().chat(uid, text, rag_ctx)
 
@@ -74,7 +74,7 @@ def isl_chat(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_conversation_history(request):
     """GET /api/llm/history/?limit=10"""
     uid   = str(request.user.id)
@@ -84,10 +84,10 @@ def get_conversation_history(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def clear_conversation(request):
     """POST /api/llm/clear/"""
-    uid = str(request.user.id)
+    uid = request.data.get("username", request.GET.get("username", "anonymous"))
     get_conversation_manager().clear(uid)
     get_sequence_manager().clear(uid)
     return Response({'success': True, 'message': 'Cleared'})
@@ -101,10 +101,10 @@ def llm_provider_status(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_session_stats(request):
     """GET /api/llm/stats/"""
-    uid = str(request.user.id)
+    uid = request.data.get("username", request.GET.get("username", "anonymous"))
     return Response({
         'success':     True,
         'sequences':   get_sequence_manager().stats(uid),

@@ -1,3 +1,4 @@
+﻿from rest_framework.permissions import AllowAny
 """
 Sign recognition views
 """
@@ -11,6 +12,7 @@ from .model_inference import get_model
 
 
 class RecognizeSignView(APIView):
+    permission_classes = [AllowAny]
     """
     Recognize ISL sign from video frame(s)
     Expects base64-encoded image frames
