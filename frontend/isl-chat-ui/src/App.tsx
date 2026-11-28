@@ -66,6 +66,28 @@ export default function App() {
     try { const r = await fetch(`${API}/api/chat/users/?room=main`); const d = await r.json(); setOnline(d.users||[]); } catch {}
   };
 
+  /* ── Poll messages when WS is offline ─────────────────── */
+  const pollRef = useRef<number|null>(null);
+  const lastCountRef = useRef(0);
+
+  const pollMessages = useCallback(async () => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) return; // WS is working, no need to poll
+    try {
+      const r = await fetch(`${API}/api/chat/messages/?room=main&since=${lastCountRef.current}`);
+      const d = await r.json();
+      if (d.messages?.length > 0) {
+        setMessages(p => {
+          const newMsgs = d.messages.filter((m: Msg) => !p.some(pm => pm.id === m.id));
+          if (newMsgs.length > 0) {
+            lastCountRef.current = d.total;
+            return [...p, ...newMsgs];
+          }
+          return p;
+        });
+      }
+    } catch {}
+  }, []);
+
   /* ── Join ──────────────────────────────────────────────── */
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,18 +96,39 @@ export default function App() {
     try { await fetch(`${API}/api/chat/join/`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:n, room:'main'})}); } catch {}
     connectWS(n);
     setScreen('chat');
+    // Poll every 1.5s as fallback when WebSocket is offline
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = window.setInterval(pollMessages, 1500);
   };
 
   /* ── Send message ──────────────────────────────────────── */
-  const sendMsg = (text: string, isIsl = false) => {
+  const sendMsg = async (text: string, isIsl = false) => {
     if (!text.trim()) return;
     const sock = wsRef.current;
+    const msg = { type:'chat_message', sender:name, message:text.trim(), is_isl:isIsl };
+
     if (sock && sock.readyState === WebSocket.OPEN) {
-      sock.send(JSON.stringify({type:'chat_message', sender:name, message:text.trim(), is_isl:isIsl}));
+      // Best path: send via WebSocket (real-time)
+      sock.send(JSON.stringify(msg));
     } else {
-      // Fallback: show locally if WS not ready
-      const m: Msg = {id:Date.now().toString(), type:'chat_message', sender:name, text:text.trim(), is_isl:isIsl, timestamp:new Date().toISOString()};
-      setMessages(p=>[...p,m]);
+      // Fallback: HTTP POST then show locally
+      const m: Msg = {
+        id: Date.now().toString(),
+        type: 'chat_message',
+        sender: name,
+        text: text.trim(),
+        is_isl: isIsl,
+        timestamp: new Date().toISOString()
+      };
+      setMessages(p => [...p, m]);
+      // Try to persist via HTTP
+      try {
+        await fetch(`${API}/api/chat/send/`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({username: name, room: 'main', text: text.trim(), is_isl: isIsl})
+        });
+      } catch {}
     }
     setInput('');
   };
@@ -273,7 +316,7 @@ export default function App() {
             onChange={e=>{setInput(e.target.value); handleTyping();}}
             placeholder="Type a message or click 🤟 to sign…"
           />
-          <button type="submit" className="isend" disabled={!input.trim()}>Send</button>
+          <button type="submit" className="isend">Send</button>
         </form>
       </div>
     </div>
