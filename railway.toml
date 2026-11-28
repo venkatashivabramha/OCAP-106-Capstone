@@ -1,7 +1,8 @@
 ﻿[build]
-builder = "nixpacks"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "cd backend && python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT config.asgi:application"
 healthcheckPath = "/api/chat/users/?room=main"
 healthcheckTimeout = 60
+restartPolicyType = "on_failure"
