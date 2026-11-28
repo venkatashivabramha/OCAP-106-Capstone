@@ -179,7 +179,7 @@ OTP_EXPIRY_MINUTES = 5
 
 
 # Channels Configuration
-ASGI_APPLICATION = 'config.routing.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
