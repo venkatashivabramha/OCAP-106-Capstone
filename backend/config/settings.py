@@ -243,3 +243,15 @@ if os.getenv('PORT'):
     ALLOWED_HOSTS += ['*.railway.app', '.railway.app', '.up.railway.app']
     CORS_ALLOWED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h.startswith('.') is False and h != '*']
     CORS_ALLOW_ALL_ORIGINS = False
+
+
+# ══ Railway DATABASE_URL support ══════════════════════════════
+DATABASE_URL = os.getenv('DATABASE_URL', '')
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+
+# ══ Railway ALLOWED_HOSTS wildcard ════════════════════════════
+if os.getenv('RAILWAY_STATIC_URL') or os.getenv('PORT'):
+    ALLOWED_HOSTS = ['*']
+    CORS_ALLOW_ALL_ORIGINS = True
