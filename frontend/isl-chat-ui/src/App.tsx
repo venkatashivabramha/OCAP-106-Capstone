@@ -1,169 +1,168 @@
 ﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 
-const API = '';   // relative — Vite proxy handles it
-const WS  = () => `ws://127.0.0.1:8000/ws/chat/main/`;
-
 interface Msg { id:string; type:string; sender:string; text:string; is_isl?:boolean; is_bot?:boolean; timestamp:string; }
 
 export default function App() {
-  const [screen,   setScreen]   = useState<'join'|'chat'>('join');
-  const [name,     setName]     = useState('');
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [input,    setInput]    = useState('');
-  const [online,   setOnline]   = useState<string[]>([]);
-  const [typing,   setTyping]   = useState<string[]>([]);
-  const [live,     setLive]     = useState(false);
-  const [showCam,  setShowCam]  = useState(false);
-  const [signs,    setSigns]    = useState<string[]>([]);
-  const [capturing,setCap]      = useState(false);
-  const [camErr,   setCamErr]   = useState('');
+  const [screen,  setScreen]  = useState<'join'|'chat'>('join');
+  const [nameVal, setNameVal] = useState('');
+  const [msgs,    setMsgs]    = useState<Msg[]>([]);
+  const [input,   setInput]   = useState('');
+  const [online,  setOnline]  = useState<string[]>([]);
+  const [typing,  setTyping]  = useState<string[]>([]);
+  const [live,    setLive]    = useState(false);
+  const [showCam, setShowCam] = useState(false);
+  const [signs,   setSigns]   = useState<string[]>([]);
+  const [cap,     setCap]     = useState(false);
+  const [camErr,  setCamErr]  = useState('');
 
-  const wsRef      = useRef<WebSocket|null>(null);
-  const bottomRef  = useRef<HTMLDivElement>(null);
-  const typerRef   = useRef<number|null>(null);
-  const videoRef   = useRef<HTMLVideoElement>(null);
-  const canvasRef  = useRef<HTMLCanvasElement>(null);
-  const streamRef  = useRef<MediaStream|null>(null);
-  const capRef     = useRef<number|null>(null);
-  const nameRef    = useRef('');
+  // Refs - never go stale
+  const nameRef   = useRef('');
+  const wsRef     = useRef<WebSocket|null>(null);
+  const pollRef   = useRef<number|null>(null);
+  const countRef  = useRef(0);
+  const typerRef  = useRef<number|null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const videoRef  = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream|null>(null);
+  const capRef    = useRef<number|null>(null);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({behavior:'smooth'}); }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({behavior:'smooth'}); }, [msgs]);
 
-  /* ── WebSocket ─────────────────────────────────────────── */
-  const connectWS = useCallback((username: string) => {
-    nameRef.current = username;
-    const sock = new WebSocket(WS() + `?user=${encodeURIComponent(username)}`);
+  // ── Fetch online users ──────────────────────────────────
+  const fetchUsers = useCallback(async () => {
+    try { const r=await fetch('/api/chat/users/?room=main'); const d=await r.json(); setOnline(d.users||[]); } catch {}
+  },[]);
 
-    sock.onopen = () => {
-      setLive(true);
-      // announce join
-      sock.send(JSON.stringify({type:'join_announce', user: username}));
-      fetchOnline();
-    };
-
-    sock.onmessage = (e) => {
-      const d = JSON.parse(e.data);
-      if (d.type === 'history') {
-        setMessages(d.messages || []);
-      } else if (d.type === 'chat_message') {
-        setMessages(p => [...p, d]);
-      } else if (d.type === 'typing') {
-        if (d.user !== username) {
-          setTyping(p => d.is_typing ? [...new Set([...p,d.user])] : p.filter(u=>u!==d.user));
-        }
-      } else if (d.type === 'join' || d.type === 'leave') {
-        setTimeout(fetchOnline, 300);
-      }
-    };
-
-    sock.onclose = () => { setLive(false); setTimeout(() => connectWS(nameRef.current), 3000); };
-    sock.onerror = () => sock.close();
-    wsRef.current = sock;
-  }, []);
-
-  const fetchOnline = async () => {
-    try { const r = await fetch(`${API}/api/chat/users/?room=main`); const d = await r.json(); setOnline(d.users||[]); } catch {}
-  };
-
-  /* ── Poll messages when WS is offline ─────────────────── */
-  const pollRef = useRef<number|null>(null);
-  const lastCountRef = useRef(0);
-
-  const pollMessages = useCallback(async () => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return; // WS is working, no need to poll
+  // ── Poll messages (HTTP fallback) ───────────────────────
+  const poll = useCallback(async () => {
+    // Always poll — works as backup even when WS is live
     try {
-      const r = await fetch(`${API}/api/chat/messages/?room=main&since=${lastCountRef.current}`);
+      const r = await fetch(`/api/chat/messages/?room=main&since=${countRef.current}`);
       const d = await r.json();
-      if (d.messages?.length > 0) {
-        setMessages(p => {
-          const newMsgs = d.messages.filter((m: Msg) => !p.some(pm => pm.id === m.id));
-          if (newMsgs.length > 0) {
-            lastCountRef.current = d.total;
-            return [...p, ...newMsgs];
-          }
-          return p;
+      const newMsgs: Msg[] = (d.messages||[]).filter((m:Msg) => m);
+      if (newMsgs.length > 0) {
+        setMsgs(p => {
+          const existing = new Set(p.map(m=>m.id));
+          const fresh = newMsgs.filter(m=>!existing.has(m.id));
+          if (fresh.length === 0) return p;
+          countRef.current = d.total;
+          return [...p, ...fresh];
         });
       }
     } catch {}
-  }, []);
+  },[]);
 
-  /* ── Join ──────────────────────────────────────────────── */
+  // ── WebSocket ───────────────────────────────────────────
+  const connectWS = useCallback((uname: string) => {
+    const url = `ws://127.0.0.1:8000/ws/chat/main/?user=${encodeURIComponent(uname)}`;
+    const ws  = new WebSocket(url);
+
+    ws.onopen = () => {
+      setLive(true);
+      fetchUsers();
+    };
+
+    ws.onmessage = (e) => {
+      const d = JSON.parse(e.data);
+      if (d.type === 'history') {
+        setMsgs(d.messages||[]);
+        countRef.current = (d.messages||[]).length;
+      } else if (d.type === 'chat_message') {
+        setMsgs(p => {
+          if (p.some(m=>m.id===d.id)) return p;
+          countRef.current++;
+          return [...p, d];
+        });
+      } else if (d.type === 'typing') {
+        if (d.user !== uname) setTyping(p => d.is_typing ? [...new Set([...p,d.user])] : p.filter(u=>u!==d.user));
+      } else if (d.type==='join'||d.type==='leave') {
+        setTimeout(fetchUsers, 400);
+      }
+    };
+
+    ws.onclose = () => { setLive(false); setTimeout(() => connectWS(nameRef.current), 3000); };
+    ws.onerror = () => ws.close();
+    wsRef.current = ws;
+  },[fetchUsers]);
+
+  // ── Join ────────────────────────────────────────────────
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const n = name.trim();
+    const n = nameVal.trim();
     if (!n) return;
-    try { await fetch(`${API}/api/chat/join/`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:n, room:'main'})}); } catch {}
+    nameRef.current = n;
+    // Register user via HTTP
+    try { await fetch('/api/chat/join/', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:n,room:'main'})}); } catch {}
     connectWS(n);
     setScreen('chat');
-    // Poll every 1.5s as fallback when WebSocket is offline
+    // Start HTTP polling as fallback (also de-dupes WS messages)
     if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = window.setInterval(pollMessages, 1500);
+    pollRef.current = window.setInterval(poll, 1500);
   };
 
-  /* ── Send message ──────────────────────────────────────── */
+  // ── Send ────────────────────────────────────────────────
   const sendMsg = async (text: string, isIsl = false) => {
-    if (!text.trim()) return;
-    const sock = wsRef.current;
-    const msg = { type:'chat_message', sender:name, message:text.trim(), is_isl:isIsl };
+    const t = text.trim();
+    if (!t) return;
+    const uname = nameRef.current;
 
-    if (sock && sock.readyState === WebSocket.OPEN) {
-      // Best path: send via WebSocket (real-time)
-      sock.send(JSON.stringify(msg));
-    } else {
-      // Fallback: HTTP POST then show locally
-      const m: Msg = {
-        id: Date.now().toString(),
-        type: 'chat_message',
-        sender: name,
-        text: text.trim(),
-        is_isl: isIsl,
-        timestamp: new Date().toISOString()
-      };
-      setMessages(p => [...p, m]);
-      // Try to persist via HTTP
-      try {
-        await fetch(`${API}/api/chat/send/`, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({username: name, room: 'main', text: text.trim(), is_isl: isIsl})
-        });
-      } catch {}
-    }
+    // Optimistic UI — show immediately
+    const optMsg: Msg = { id: `opt-${Date.now()}`, type:'chat_message', sender:uname, text:t, is_isl:isIsl, timestamp:new Date().toISOString() };
+    setMsgs(p => [...p, optMsg]);
     setInput('');
+
+    // Try WebSocket first (real-time delivery to others)
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({type:'chat_message', sender:uname, message:t, is_isl:isIsl}));
+    }
+
+    // Always persist via HTTP (ensures other users see it via polling)
+    try {
+      const r = await fetch('/api/chat/send/', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({username:uname, room:'main', text:t, is_isl:isIsl})
+      });
+      if (r.ok) {
+        const d = await r.json();
+        // Replace optimistic message with real one
+        if (d.message) {
+          setMsgs(p => p.map(m => m.id===optMsg.id ? {...d.message, sender:uname} : m));
+        }
+      }
+    } catch {}
   };
 
   const handleSend = (e: React.FormEvent) => { e.preventDefault(); sendMsg(input); };
-
-  const handleTyping = () => {
-    const sock = wsRef.current;
-    if (sock?.readyState === WebSocket.OPEN) {
-      sock.send(JSON.stringify({type:'typing', user:name, is_typing:true}));
-      if (typerRef.current) clearTimeout(typerRef.current);
-      typerRef.current = window.setTimeout(() => sock.send(JSON.stringify({type:'typing',user:name,is_typing:false})), 2000);
-    }
+  const handleType = () => {
+    const ws = wsRef.current;
+    if (ws?.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({type:'typing',user:nameRef.current,is_typing:true}));
+    if (typerRef.current) clearTimeout(typerRef.current);
+    typerRef.current = window.setTimeout(() => ws.send(JSON.stringify({type:'typing',user:nameRef.current,is_typing:false})),2000);
   };
 
-  /* ── Voice ─────────────────────────────────────────────── */
+  // ── Voice ───────────────────────────────────────────────
   const speak = async (text: string) => {
     const clean = text.replace(/^🤟\s*/,'');
     try {
-      const r = await fetch(`${API}/api/llm/speak/`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:clean})});
+      const r = await fetch('/api/llm/speak/', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean})});
       const d = await r.json();
       if (d.audio_b64) {
-        const bytes = Uint8Array.from(atob(d.audio_b64), c=>c.charCodeAt(0));
+        const bytes = Uint8Array.from(atob(d.audio_b64),c=>c.charCodeAt(0));
         new Audio(URL.createObjectURL(new Blob([bytes],{type:'audio/wav'}))).play();
         return;
       }
     } catch {}
-    // Browser fallback
     const u = new SpeechSynthesisUtterance(clean);
     u.lang='en-IN'; u.rate=0.95;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
   };
 
-  /* ── Camera ─────────────────────────────────────────────── */
+  // ── Camera ──────────────────────────────────────────────
   const openCam = async () => {
     setCamErr(''); setSigns([]); setShowCam(true);
     try {
@@ -175,8 +174,7 @@ export default function App() {
 
   const closeCam = () => {
     if (capRef.current) { clearInterval(capRef.current); capRef.current=null; }
-    streamRef.current?.getTracks().forEach(t=>t.stop());
-    streamRef.current=null;
+    streamRef.current?.getTracks().forEach(t=>t.stop()); streamRef.current=null;
     setCap(false); setShowCam(false); setSigns([]);
   };
 
@@ -192,32 +190,30 @@ export default function App() {
     const frame = await grabFrame();
     if (!frame) return;
     try {
-      const r = await fetch(`${API}/api/recognition/recognize/`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({frame})
-      });
+      const r = await fetch('/api/recognition/recognize/', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frame})});
       if (r.ok) {
         const d = await r.json();
         if (d.sign_label && d.confidence_score >= 0.55) {
-          setSigns(p => { const last=p[p.length-1]; return last===d.sign_label ? p : [...p, d.sign_label]; });
+          setSigns(p => { const last=p[p.length-1]; return last===d.sign_label?p:[...p,d.sign_label]; });
         }
       }
     } catch {}
-  }, []);
+  },[]);
 
-  const toggleCapture = () => {
+  const toggleCap = () => {
     if (capRef.current) { clearInterval(capRef.current); capRef.current=null; setCap(false); }
-    else { setCap(true); recogniseOnce(); capRef.current=window.setInterval(recogniseOnce, 1000); }
+    else { setCap(true); recogniseOnce(); capRef.current=window.setInterval(recogniseOnce,1000); }
   };
 
   const sendISL = () => {
-    if (signs.length===0) return;
-    const text = signs.map(s=>s.replace(/_/g,' ').toLowerCase()).join(' ');
-    sendMsg(`🤟 ${text}`, true);
+    if (!signs.length) return;
+    sendMsg(`🤟 ${signs.map(s=>s.replace(/_/g,' ').toLowerCase()).join(' ')}`, true);
     closeCam();
   };
 
-  /* ── JOIN SCREEN ───────────────────────────────────────── */
+  // ═══════════════════════════════════════════════════════
+  //  JOIN SCREEN
+  // ═══════════════════════════════════════════════════════
   if (screen==='join') return (
     <div className="join-screen">
       <div className="join-card">
@@ -225,39 +221,42 @@ export default function App() {
         <h1>ISL Chat</h1>
         <p>Indian Sign Language — real-time chat</p>
         <form onSubmit={handleJoin}>
-          <input autoFocus placeholder="Your name" value={name} onChange={e=>setName(e.target.value)} required maxLength={30}/>
+          <input autoFocus placeholder="Your name (e.g. Alice)" value={nameVal}
+            onChange={e=>setNameVal(e.target.value)} required maxLength={30}/>
           <button type="submit">Join Chat →</button>
         </form>
-        <div className="join-hint">Open in 2 tabs with different names to chat together</div>
+        <div className="join-hint">Open in 2 browser tabs with different names to chat</div>
       </div>
     </div>
   );
 
-  /* ── CHAT SCREEN ───────────────────────────────────────── */
+  // ═══════════════════════════════════════════════════════
+  //  CHAT SCREEN
+  // ═══════════════════════════════════════════════════════
   return (
     <div className="app">
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sb-logo">🤟 ISL Chat</div>
-        <div className="sb-you">You: <b>{name}</b></div>
+        <div className="sb-you">You: <b>{nameRef.current}</b></div>
         <div className="sb-label">Online ({online.length})</div>
         {online.map(u=>(
-          <div key={u} className={`sb-user ${u===name?'sb-me':''}`}>
+          <div key={u} className={`sb-user ${u===nameRef.current?'sb-me':''}`}>
             <span className="sb-dot"/>  {u}
           </div>
         ))}
         <div className="sb-room">Room: #main</div>
-        <div className={`sb-status ${live?'live':'offline'}`}>{live?'● Live':'○ Reconnecting…'}</div>
+        <div className={`sb-status ${live?'live':'offline'}`}>
+          {live ? '● Live (WebSocket)' : '○ Polling mode'}
+        </div>
       </aside>
 
-      {/* Chat */}
+      {/* Chat area */}
       <div className="chat">
         <div className="msgs">
-          {messages.length===0 && (
-            <div className="empty">No messages yet — say hello! 👋</div>
-          )}
-          {messages.map((m,i) => {
-            const mine = m.sender===name;
+          {msgs.length===0 && <div className="empty">No messages yet — say hello! 👋</div>}
+          {msgs.map((m,i) => {
+            const mine = m.sender===nameRef.current;
             const bot  = m.is_bot;
             return (
               <div key={m.id||i} className={`mrow ${mine?'mmine':bot?'mbot':''}`}>
@@ -276,45 +275,41 @@ export default function App() {
           <div ref={bottomRef}/>
         </div>
 
-        {/* ISL Camera Modal */}
+        {/* ISL Camera */}
         {showCam && (
-          <div className="cam-bg" onClick={(e)=>{ if(e.target===e.currentTarget) closeCam(); }}>
+          <div className="cam-bg" onClick={e=>{ if(e.target===e.currentTarget) closeCam(); }}>
             <div className="cam-box">
-              <div className="cam-top">
-                <span>🤟 Sign Language Input</span>
-                <button onClick={closeCam}>✕</button>
-              </div>
+              <div className="cam-top"><span>🤟 Sign Language Input</span><button onClick={closeCam}>✕</button></div>
               <div className="cam-feed">
                 <video ref={videoRef} autoPlay playsInline muted/>
-                {capturing && <div className="cam-rec">● REC</div>}
+                {cap && <div className="cam-rec">● REC</div>}
                 {camErr && <div className="cam-err">{camErr}</div>}
                 {!streamRef.current && !camErr && <div className="cam-loading">Starting camera…</div>}
               </div>
               <canvas ref={canvasRef} style={{display:'none'}}/>
               <div className="cam-signs">
                 {signs.length===0
-                  ? <span className="cam-hint">Press Start Signing then sign in front of camera</span>
+                  ? <span className="cam-hint">Press ▶ Start Signing then sign in front of the camera</span>
                   : signs.map((s,i)=><span key={i} className="chip">{s.replace(/_/g,' ')}</span>)
                 }
               </div>
               <div className="cam-btns">
-                <button className={`cbtn ${capturing?'cbtn-stop':''}`} onClick={toggleCapture}>
-                  {capturing?'■ Stop':'▶ Start Signing'}
-                </button>
-                <button className="cbtn cbtn-clear" onClick={()=>setSigns([])} disabled={signs.length===0}>Clear</button>
-                <button className="cbtn cbtn-send" onClick={sendISL} disabled={signs.length===0}>Send 🤟</button>
+                <button className={`cbtn ${cap?'cbtn-stop':''}`} onClick={toggleCap}>{cap?'■ Stop':'▶ Start Signing'}</button>
+                <button className="cbtn cbtn-clear" onClick={()=>setSigns([])} disabled={!signs.length}>Clear</button>
+                <button className="cbtn cbtn-send" onClick={sendISL} disabled={!signs.length}>Send 🤟</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Input */}
+        {/* Input bar */}
         <form className="ibar" onSubmit={handleSend}>
-          <button type="button" className="icam" onClick={openCam} title="Sign Language Input">🤟</button>
+          <button type="button" className="icam" onClick={openCam} title="Sign Language">🤟</button>
           <input
             value={input}
-            onChange={e=>{setInput(e.target.value); handleTyping();}}
+            onChange={e=>{setInput(e.target.value); handleType();}}
             placeholder="Type a message or click 🤟 to sign…"
+            autoComplete="off"
           />
           <button type="submit" className="isend">Send</button>
         </form>
